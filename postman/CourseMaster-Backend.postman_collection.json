@@ -1,0 +1,1304 @@
+{
+  "info": {
+    "_postman_id": "8f2a1c3e-4b5d-4e6f-8a9b-0c1d2e3f4a5b",
+    "name": "CourseMaster Backend API",
+    "description": "CourseMaster Backend API collection.\n\nBase URL: {{baseUrl}} (default http://localhost:5000)\nAuth: Bearer JWT. Collection requests use {{token}}; admin folders use {{adminToken}}.\n\nSeeded accounts:\n- Admin: admin@coursemaster.com / admin123\n- Student: student@coursemaster.com / student123\n\nQuick start:\n1. Start the API (npm run dev) and seed data (npm run seed).\n2. Run \"Auth > Login (Student)\" to populate {{token}} and {{userId}}.\n3. Run \"Auth > Login (Admin)\" to populate {{adminToken}}.\n4. Run \"Admin > Create Course\" to capture {{courseId}}, {{lessonId}}, and {{batchId}}, or set them manually.\n5. Run \"Users > Get All Users\" to capture {{targetUserId}} for admin user actions.\n\nNotes:\n- Admin folders require an admin JWT.\n- Login is split into student/admin requests so both tokens can be kept at once.\n- Some known backend quirks are documented in the relevant request descriptions.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5000",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "adminToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "courseId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "lessonId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "enrollmentId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "assignmentId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "batchId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "userId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "targetUserId",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "item": [
+    {
+      "name": "Health",
+      "description": "Public health check endpoint.",
+      "auth": {
+        "type": "noauth"
+      },
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": []
+            },
+            "description": "Returns a plain-text message confirming the API is running.\n\nAuth: none."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Auth",
+      "description": "Registration, login, and current-user endpoints.",
+      "auth": {
+        "type": "noauth"
+      },
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"John Doe\",\n  \"email\": \"john.doe@example.com\",\n  \"password\": \"password123\",\n  \"role\": \"student\",\n  \"adminKey\": \"\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "register"
+              ]
+            },
+            "description": "Creates a user account. By default the role is student.\n\nTo create an admin, set \"role\": \"admin\" and provide an adminKey matching ADMIN_REGISTRATION_KEY. If the key is invalid, the account is created as a student.\n\nAuth: none.\n\nTest script saves the returned token to {{token}} and the user id to {{userId}}.",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();",
+                  "if (body.token) {",
+                  "    pm.collectionVariables.set(\"token\", body.token);",
+                  "}",
+                  "if (body.user && body.user.id) {",
+                  "    pm.collectionVariables.set(\"userId\", body.user.id);",
+                  "}",
+                  "if (body.user && body.user.role === \"admin\" && body.token) {",
+                  "    pm.collectionVariables.set(\"adminToken\", body.token);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Login (Student)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"student@coursemaster.com\",\n  \"password\": \"student123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Logs in with the seeded student account and stores the student JWT in {{token}}.\n\nAuth: none.",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();",
+                  "if (body.token) {",
+                  "    pm.collectionVariables.set(\"token\", body.token);",
+                  "}",
+                  "if (body.user && body.user.id) {",
+                  "    pm.collectionVariables.set(\"userId\", body.user.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Login (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@coursemaster.com\",\n  \"password\": \"admin123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Logs in with the seeded admin account and stores the admin JWT in {{adminToken}}. The student {{token}} is left untouched.\n\nAuth: none.",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();",
+                  "if (body.token) {",
+                  "    pm.collectionVariables.set(\"adminToken\", body.token);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Get Current User",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "me"
+              ]
+            },
+            "description": "Returns the currently authenticated user without the password hash.\n\nAuth: Bearer {{token}}.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Courses",
+      "description": "Public course catalog endpoints.",
+      "auth": {
+        "type": "noauth"
+      },
+      "item": [
+        {
+          "name": "Get All Courses",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/courses?page=1&limit=8",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "courses"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Page number (default 1)."
+                },
+                {
+                  "key": "limit",
+                  "value": "8",
+                  "description": "Items per page (default 8, maximum 100)."
+                },
+                {
+                  "key": "search",
+                  "value": "React",
+                  "description": "Search by course title or instructor name.",
+                  "disabled": true
+                },
+                {
+                  "key": "sort",
+                  "value": "price_asc",
+                  "description": "Sort by price: price_asc or price_desc.",
+                  "disabled": true
+                },
+                {
+                  "key": "category",
+                  "value": "Web Development",
+                  "description": "Filter by exact category.",
+                  "disabled": true
+                },
+                {
+                  "key": "tags",
+                  "value": "React,Node.js",
+                  "description": "Comma-separated tags to match.",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Returns a paginated course list with total/page metadata.\n\nAuth: none.",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Course by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/courses/{{courseId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "courses",
+                "{{courseId}}"
+              ]
+            },
+            "description": "Returns one course with its full syllabus, lessons, quizzes, and batches.\n\nAuth: none.\n\nSet {{courseId}} manually or capture it from Admin > Create Course.",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Enrollments",
+      "description": "Student enrollment and lesson-progress endpoints.",
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          {
+            "key": "token",
+            "value": "{{token}}",
+            "type": "string"
+          }
+        ]
+      },
+      "item": [
+        {
+          "name": "Enroll in Course",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"batchId\": \"{{batchId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/enrollments/{{courseId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "enrollments",
+                "{{courseId}}"
+              ]
+            },
+            "description": "Enrolls the authenticated student in a course. batchId is optional.\n\nAuth: Bearer {{token}}.\n\nKnown backend quirk: the service currently throws \"Already enrolled in this course\" when no enrollment exists and attempts creation when one does exist. Use a course the student is not yet enrolled in.\n\nTest script saves the returned enrollment id to {{enrollmentId}}.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();",
+                  "if (body._id) {",
+                  "    pm.collectionVariables.set(\"enrollmentId\", body._id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Get My Enrollments",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/enrollments/my",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "enrollments",
+                "my"
+              ]
+            },
+            "description": "Returns the authenticated student's enrollments with populated course summary.\n\nAuth: Bearer {{token}}.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Complete Lesson",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"lessonId\": \"{{lessonId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/enrollments/{{enrollmentId}}/complete-lesson",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "enrollments",
+                "{{enrollmentId}}",
+                "complete-lesson"
+              ]
+            },
+            "description": "Marks a lesson complete and recalculates progress percent.\n\nAuth: Bearer {{token}}.\n\nSet {{enrollmentId}} and {{lessonId}} before running. The backend does not await enrollment.save().",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Assignments",
+      "description": "Student assignment submission and statistics endpoints.",
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          {
+            "key": "token",
+            "value": "{{token}}",
+            "type": "string"
+          }
+        ]
+      },
+      "item": [
+        {
+          "name": "Submit Assignment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"courseId\": \"{{courseId}}\",\n  \"lessonId\": \"{{lessonId}}\",\n  \"answerType\": \"text\",\n  \"answer\": \"My assignment answer goes here.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/assignments/submit",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "assignments",
+                "submit"
+              ]
+            },
+            "description": "Submits an assignment for the authenticated student. answerType must be \"text\" or \"link\". The student must be enrolled in the course.\n\nAuth: Bearer {{token}}.\n\nTest script saves the returned submission id to {{assignmentId}}.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();",
+                  "if (body._id) {",
+                  "    pm.collectionVariables.set(\"assignmentId\", body._id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Get My Submissions",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/assignments/my?courseId={{courseId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "assignments",
+                "my"
+              ],
+              "query": [
+                {
+                  "key": "courseId",
+                  "value": "{{courseId}}",
+                  "description": "Optional course filter. Disable the parameter to return submissions for all courses."
+                }
+              ]
+            },
+            "description": "Returns the authenticated student's assignment submissions, newest first.\n\nAuth: Bearer {{token}}.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Assignment Stats",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/assignments/stats?courseId={{courseId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "assignments",
+                "stats"
+              ],
+              "query": [
+                {
+                  "key": "courseId",
+                  "value": "{{courseId}}",
+                  "description": "Required course id."
+                }
+              ]
+            },
+            "description": "Returns average grade, total assignments, reviewed count, and per-submission stats for a course.\n\nAuth: Bearer {{token}}.\n\ncourseId is required.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Quizzes",
+      "description": "Student quiz submission and statistics endpoints.",
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          {
+            "key": "token",
+            "value": "{{token}}",
+            "type": "string"
+          }
+        ]
+      },
+      "item": [
+        {
+          "name": "Submit Quiz",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"courseId\": \"{{courseId}}\",\n  \"lessonId\": \"{{lessonId}}\",\n  \"answers\": [\n    0,\n    1,\n    2\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/quizzes/submit",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "quizzes",
+                "submit"
+              ]
+            },
+            "description": "Grades a quiz for the authenticated student. answers is an array of selected option indices, one per quiz question. The student must be enrolled in the course.\n\nAuth: Bearer {{token}}.\n\nKnown backend quirk: percent is currently calculated as score/total*10 instead of *100.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get My Quiz Submissions",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/quizzes/my?courseId={{courseId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "quizzes",
+                "my"
+              ],
+              "query": [
+                {
+                  "key": "courseId",
+                  "value": "{{courseId}}",
+                  "description": "Optional course filter. Disable the parameter to return all quiz submissions."
+                }
+              ]
+            },
+            "description": "Returns the authenticated student's quiz submissions, newest first.\n\nAuth: Bearer {{token}}.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Quiz Stats",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/quizzes/stats?courseId={{courseId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "quizzes",
+                "stats"
+              ],
+              "query": [
+                {
+                  "key": "courseId",
+                  "value": "{{courseId}}",
+                  "description": "Required course id."
+                }
+              ]
+            },
+            "description": "Returns average percent, total quizzes, and the latest submission per lesson for a course.\n\nAuth: Bearer {{token}}.\n\ncourseId is required.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Admin",
+      "description": "Admin-only course management, reporting, and assignment review endpoints.",
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          {
+            "key": "token",
+            "value": "{{adminToken}}",
+            "type": "string"
+          }
+        ]
+      },
+      "item": [
+        {
+          "name": "Create Course",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"New Course Title\",\n  \"description\": \"A concise description of what students will learn in this course.\",\n  \"instructorName\": \"Instructor Name\",\n  \"price\": 4999,\n  \"category\": \"Web Development\",\n  \"tags\": [\n    \"React\",\n    \"Node.js\",\n    \"MongoDB\"\n  ],\n  \"syllabus\": [\n    {\n      \"title\": \"Module 1: Getting Started\",\n      \"lessons\": [\n        {\n          \"title\": \"Lesson 1: Introduction\",\n          \"videoUrl\": \"https://www.youtube.com/embed/dQw4w9WgXcQ\",\n          \"liveClassLink\": \"https://meet.google.com/abc-defg-hij\",\n          \"liveClassDate\": \"2026-01-15T18:00:00.000Z\",\n          \"assignmentPrompt\": \"Build a small project and submit the repository link.\",\n          \"quiz\": [\n            {\n              \"question\": \"Which hook is used for side effects in React?\",\n              \"options\": [\n                \"useState\",\n                \"useMemo\",\n                \"useEffect\",\n                \"useCallback\"\n              ],\n              \"correctIndex\": 2\n            },\n            {\n              \"question\": \"Which command installs dependencies from package.json?\",\n              \"options\": [\n                \"npm start\",\n                \"npm install\",\n                \"npm run build\",\n                \"npm test\"\n              ],\n              \"correctIndex\": 1\n            }\n          ]\n        },\n        {\n          \"title\": \"Lesson 2: Hands-on Project\",\n          \"videoUrl\": \"https://www.youtube.com/embed/dQw4w9WgXcQ\",\n          \"assignmentPrompt\": \"Implement the project described in the lesson.\"\n        }\n      ]\n    }\n  ],\n  \"batches\": [\n    {\n      \"name\": \"Batch 1 (Spring 2026)\",\n      \"startDate\": \"2026-01-10T00:00:00.000Z\"\n    },\n    {\n      \"name\": \"Batch 2 (Summer 2026)\",\n      \"startDate\": \"2026-06-01T00:00:00.000Z\"\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/courses",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "courses"
+              ]
+            },
+            "description": "Creates a course with modules, lessons, quizzes, and batches.\n\nAuth: Bearer {{adminToken}} (admin role required).\n\nTest script saves the new course id to {{courseId}}, the first lesson id to {{lessonId}}, and the first batch id to {{batchId}}.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();",
+                  "if (body._id) {",
+                  "    pm.collectionVariables.set(\"courseId\", body._id);",
+                  "}",
+                  "const firstModule = body.syllabus && body.syllabus[0];",
+                  "const firstLesson = firstModule && firstModule.lessons && firstModule.lessons[0];",
+                  "if (firstLesson && firstLesson._id) {",
+                  "    pm.collectionVariables.set(\"lessonId\", firstLesson._id);",
+                  "}",
+                  "const firstBatch = body.batches && body.batches[0];",
+                  "if (firstBatch && firstBatch._id) {",
+                  "    pm.collectionVariables.set(\"batchId\", firstBatch._id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Update Course",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Updated Course Title\",\n  \"price\": 3999,\n  \"category\": \"Web Development\",\n  \"tags\": [\n    \"React\",\n    \"Next.js\",\n    \"MongoDB\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/courses/{{courseId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "courses",
+                "{{courseId}}"
+              ]
+            },
+            "description": "Partially updates a course. Send only the fields to change; nested arrays such as syllabus and batches replace the existing values.\n\nAuth: Bearer {{adminToken}} (admin role required).",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Course",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/courses/{{courseId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "courses",
+                "{{courseId}}"
+              ]
+            },
+            "description": "Deletes a course by id and returns a success message.\n\nAuth: Bearer {{adminToken}} (admin role required).",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Enrollments",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/enrollments",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "enrollments"
+              ],
+              "query": [
+                {
+                  "key": "courseId",
+                  "value": "{{courseId}}",
+                  "description": "Optional course filter.",
+                  "disabled": true
+                },
+                {
+                  "key": "batchId",
+                  "value": "{{batchId}}",
+                  "description": "Optional batch filter.",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Lists enrollments with populated student and course summaries, newest first.\n\nAuth: Bearer {{adminToken}} (admin role required).\n\nEnable the optional courseId/batchId query parameters to filter.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Assignments",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/assignments",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "assignments"
+              ]
+            },
+            "description": "Lists all assignment submissions with student, course, reviewer, lesson title, and assignment prompt.\n\nAuth: Bearer {{adminToken}} (admin role required).\n\nKnown backend quirk: the controller does not pass req.query, so courseId filtering is currently ignored.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Review Assignment",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"reviewed\",\n  \"reviewNotes\": \"Great work! Clear structure and good attention to detail.\",\n  \"grade\": 95\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/assignments/{{assignmentId}}/review",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "assignments",
+                "{{assignmentId}}",
+                "review"
+              ]
+            },
+            "description": "Reviews an assignment submission. status is \"submitted\" or \"reviewed\"; grade is numeric; reviewNotes is free text. The reviewing admin is recorded automatically.\n\nAuth: Bearer {{adminToken}} (admin role required).\n\nSet {{assignmentId}} before running.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Analytics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/analytics",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "analytics"
+              ]
+            },
+            "description": "Returns dashboard analytics: 30-day enrollment chart data, top 5 courses by enrollment, and platform totals for enrollments, courses, students, and admins/instructors.\n\nAuth: Bearer {{adminToken}} (admin role required).",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Users",
+      "description": "Admin-only user management endpoints.",
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          {
+            "key": "token",
+            "value": "{{adminToken}}",
+            "type": "string"
+          }
+        ]
+      },
+      "item": [
+        {
+          "name": "Get All Users",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/users",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users"
+              ]
+            },
+            "description": "Lists all users without password hashes, newest first.\n\nAuth: Bearer {{adminToken}} (admin role required).\n\nTest script saves the first returned user id to {{targetUserId}} for the other admin user actions.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const users = pm.response.json();",
+                  "if (Array.isArray(users) && users.length > 0) {",
+                  "    pm.collectionVariables.set(\"targetUserId\", users[0]._id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Delete User",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/users/{{targetUserId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "{{targetUserId}}"
+              ]
+            },
+            "description": "Deletes a user by id. An admin cannot delete their own account.\n\nAuth: Bearer {{adminToken}} (admin role required).\n\nSet {{targetUserId}} before running.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update User Role",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"role\": \"student\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/users/{{targetUserId}}/role",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "{{targetUserId}}",
+                "role"
+              ]
+            },
+            "description": "Updates a user's role. Allowed values are \"student\" and \"admin\". An admin cannot change their own role.\n\nAuth: Bearer {{adminToken}} (admin role required).\n\nSet {{targetUserId}} before running.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Toggle Ban User",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/users/{{targetUserId}}/ban",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "{{targetUserId}}",
+                "ban"
+              ]
+            },
+            "description": "Toggles the isBanned flag for a user. An admin cannot ban their own account.\n\nAuth: Bearer {{adminToken}} (admin role required).\n\nSet {{targetUserId}} before running. No request body.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}

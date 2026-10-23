@@ -2,6 +2,8 @@
 
 const authService = require("../services/auth.service");
 
+
+//& REGISTER
 const register = async (req, res) => {
   try {
     console.log('body', req.body)
@@ -13,6 +15,8 @@ const register = async (req, res) => {
   }
 };
 
+
+//& LOGIN
 const login = async (req, res) => {
   try {
     const data = await authService.login(req.body);
